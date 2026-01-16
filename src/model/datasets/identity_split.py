@@ -2,7 +2,7 @@ import numpy as np
 from torch.utils.data import Subset, random_split
 from collections import defaultdict
 import torch
-
+import pandas as pd
 
 
 def random_dataset_split(dataset, train_ratio, val_ratio, seed=42):
@@ -79,3 +79,53 @@ def check_identity_leakage(train_set, val_set, test_set):
     assert get_ids(train_set).isdisjoint(get_ids(val_set))
     assert get_ids(train_set).isdisjoint(get_ids(test_set))
     assert get_ids(val_set).isdisjoint(get_ids(test_set))
+
+
+
+def identity_aware_dataframe_split(
+    df: pd.DataFrame,
+    train_ratio: float,
+    val_ratio: float,
+    seed: int = 42,
+):
+    """
+    Identity-aware split on DataFrame level (image-count based).
+    Each person_id appears in exactly one split.
+    """
+
+    rng = np.random.default_rng(seed)
+
+    person_to_indices = defaultdict(list)
+    for idx, row in df.iterrows():
+        person_to_indices[row["person_id"]].append(idx)
+
+    persons = list(person_to_indices.keys())
+    rng.shuffle(persons)
+
+    total_images = len(df)
+    train_target = int(train_ratio * total_images)
+    val_target = int(val_ratio * total_images)
+
+    train_idx, val_idx, test_idx = [], [], []
+    train_count = val_count = 0
+
+    for pid in persons:
+        indices = person_to_indices[pid]
+        n_imgs = len(indices)
+
+        if train_count < train_target:
+            train_idx.extend(indices)
+            train_count += n_imgs
+
+        elif val_count < val_target:
+            val_idx.extend(indices)
+            val_count += n_imgs
+
+        else:
+            test_idx.extend(indices)
+
+    return (
+        df.loc[train_idx].reset_index(drop=True),
+        df.loc[val_idx].reset_index(drop=True),
+        df.loc[test_idx].reset_index(drop=True),
+    )
