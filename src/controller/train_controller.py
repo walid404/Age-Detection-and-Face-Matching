@@ -44,7 +44,7 @@ def run_training(config):
     img_size = config["dataset"]["img_size"]
 
     # --------------------------------------------------
-    # Transforms (ToTensor -> [0,1])
+    # Transforms (values in [0,1])
     # --------------------------------------------------
     train_transform = transforms.Compose([
         transforms.Resize((img_size, img_size)),
@@ -75,7 +75,7 @@ def run_training(config):
     )
 
     # --------------------------------------------------
-    # Split once (random & identity)
+    # Split ONCE (random & identity)
     # --------------------------------------------------
     config["dataset"]["split_strategy"] = "random"
     r_train, r_val, r_test = split_dataset(train_dataset, config)
@@ -129,7 +129,7 @@ def run_training(config):
                 "batch_size": batch_size,
                 "learning_rate": lr,
                 "max_epochs": max_epochs,
-                "loss": "mse",
+                "loss": config["training"]["loss"],
             })
 
             train_loader = DataLoader(
@@ -195,6 +195,8 @@ def run_training(config):
                     early_stopped = True
                     break
 
+            epoch_bar.close()
+
             # --------------------------------------------------
             # End timer
             # --------------------------------------------------
@@ -230,8 +232,6 @@ def run_training(config):
             # --------------------------------------------------
             model_path = os.path.join(model_dir, f"{run_name}.pt")
             torch.save(model.state_dict(), model_path)
-            # mlflow.log_artifact(model_path)
-            # mlflow.pytorch.log_model(model, artifact_path="model")
 
             # --------------------------------------------------
             # Update global tqdm (IN-PLACE)
@@ -239,7 +239,9 @@ def run_training(config):
             experiments_bar.set_postfix({
                 "model": model_name,
                 "split": split_name,
-                "best_val_loss": f"{early_stopper.best_loss:.2f}",
+                "best_val": f"{early_stopper.best_loss:.2f}",
                 "epochs": epochs_run,
                 "time_min": f"{training_time_min:.2f}",
             })
+
+    experiments_bar.close()
