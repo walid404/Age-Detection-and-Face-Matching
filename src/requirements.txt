@@ -1,0 +1,6 @@
+torch==2.9.1
+torchvision==0.24.1
+pillow==12.1.0
+mlflow==3.8.1
+PyYAML==6.0.3
+tqdm==4.67.1
