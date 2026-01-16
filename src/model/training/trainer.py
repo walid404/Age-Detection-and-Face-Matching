@@ -1,6 +1,8 @@
 import torch
 from model.utils.metrics import mae, mse, rmse, r2_score
 
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 def train_epoch(model, dataloader, optimizer, criterion):
     model.train()
     total_loss = 0
