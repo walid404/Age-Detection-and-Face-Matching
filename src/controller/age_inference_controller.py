@@ -11,4 +11,4 @@ def predict_age(model, image_tensor, img_size=224):
     model.eval()
     with torch.no_grad():
         pred = model(transform(image_tensor).unsqueeze(0).to(DEVICE))
-    return int(pred.item())
+    return int(round(pred.item(), 0))
