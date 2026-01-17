@@ -1,21 +1,15 @@
 import os
-from PIL import Image
 import torch
 import pandas as pd
 import numpy as np
 from tqdm import tqdm
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
-from model.networks.arcface_model import ArcFaceExtractor
-from model.networks.face_matcher import FaceMatcher
+from src.model.utils.load import load_image
+from face_match_inference_controller import match_faces
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
-
-def load_image(image_path):
-    """Load image in RGB format."""
-    img = Image.open(image_path).convert("RGB")
-    return img
 
 
 def evaluate_face_matching(
@@ -28,9 +22,6 @@ def evaluate_face_matching(
     """
 
     df = pd.read_csv(pairs_csv) if isinstance(pairs_csv, str) else pairs_csv
-
-    extractor = ArcFaceExtractor(device=DEVICE)
-    matcher = FaceMatcher(threshold=threshold)
 
     y_true = []
     y_pred = []
@@ -52,11 +43,7 @@ def evaluate_face_matching(
         try:
             img1 = load_image(img1_path)
             img2 = load_image(img2_path)
-
-            emb1 = extractor.extract_embedding(img1)
-            emb2 = extractor.extract_embedding(img2)
-
-            pred, similarity = matcher.match(emb1, emb2)
+            pred, similarity = match_faces(img1, img2, threshold=threshold).values()
 
         except Exception as e:
             # Skip broken samples safely

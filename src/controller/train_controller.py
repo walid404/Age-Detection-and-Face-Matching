@@ -8,13 +8,16 @@ from torchvision import transforms
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from tqdm import tqdm
 
-from model.datasets.age_dataset import AgeDataset
-from model.datasets.split_factory import split_dataset
-from model.networks.age_models import get_age_model
-from model.training.trainer import train_epoch, evaluate_full
-from model.training.losses import get_loss
-from model.training.early_stopping import EarlyStopping
-from scripts.prepare_data import prepare_dataset
+from src.model.datasets.age_dataset import AgeDataset
+from src.model.datasets.split_factory import split_dataset
+from src.model.networks.age_models import get_age_model
+from src.model.training.trainer import train_epoch, evaluate_full
+from src.model.training.losses import get_loss
+from src.model.training.early_stopping import EarlyStopping
+
+from src.view.loss_plot import plot_losses
+from src.view.visualize_predictions import generate_age_prediction_samples
+from src.view.identity_distribution import plot_identity_distribution
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -30,9 +33,18 @@ def run_training(config):
     """
 
     # --------------------------------------------------
-    # Ensure dataset exists
+    # Dataset paths
     # --------------------------------------------------
-    prepare_dataset()
+    config['dataset']['labels_csv'] = os.path.join(
+        config['dataset']['dataset_root'],
+        config['dataset']['dataset_name'],
+        config['dataset']['labels_csv_name'],
+    )
+    config['dataset']['images_dir'] = os.path.join(
+        config['dataset']['dataset_root'],
+        config['dataset']['dataset_name'],
+        config['dataset']['images_dir_name'],
+    )
 
     # --------------------------------------------------
     # MLflow setup
@@ -95,6 +107,14 @@ def run_training(config):
             "test": Subset(eval_dataset, i_test.indices),
         },
     }
+    
+    plot_identity_distribution(
+        subsets=[r_train, i_train, r_test, i_test, r_val, i_val],
+        names=["train_random_split", "train_identity_split", 
+               "test_random_split", "test_identity_split",
+               "val_random_split", "val_identity_split"],
+        plots_dir="src/reports/plots",
+    )
 
     # --------------------------------------------------
     # Experiment grid
@@ -197,6 +217,8 @@ def run_training(config):
 
             epoch_bar.close()
 
+            print(f"\nFinished Training: {run_name}")
+            
             # --------------------------------------------------
             # End timer
             # --------------------------------------------------

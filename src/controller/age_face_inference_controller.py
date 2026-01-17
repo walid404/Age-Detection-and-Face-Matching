@@ -1,9 +1,7 @@
-from PIL import Image
 import torch
-import numpy as np
-from model.networks.age_models import get_age_model
-from controller.age_inference_controller import predict_age
-from controller.face_match_inference_controller import match_faces
+from src.controller.age_inference_controller import predict_age
+from src.controller.face_match_inference_controller import match_faces
+from src.model.utils.load import load_image, load_model
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -25,21 +23,9 @@ class AgeFaceMatchingInference:
         # -------------------------------
         # Age model
         # -------------------------------
-        self.age_model = get_age_model(age_model_name).to(DEVICE)
-        self.age_model.load_state_dict(
-            torch.load(age_model_weights, map_location=DEVICE)
-        )
+        self.age_model = load_model(age_model_name, age_model_weights)
         self.img_size = img_size
         self.match_threshold = match_threshold
-
-    # --------------------------------------------------
-    # Internal utilities
-    # --------------------------------------------------
-    def _load_image(self, image_path: str):
-        img = Image.open(image_path).convert("RGB")
-        if img is None:
-            raise ValueError(f"Could not read image: {image_path}")
-        return img
 
     # --------------------------------------------------
     # Public API
@@ -58,8 +44,8 @@ class AgeFaceMatchingInference:
         # -------------------------------
         # Load images
         # -------------------------------
-        img1 = self._load_image(image_path_1)
-        img2 = self._load_image(image_path_2)
+        img1 = load_image(image_path_1)
+        img2 = load_image(image_path_2)
 
         # -------------------------------
         # Age prediction

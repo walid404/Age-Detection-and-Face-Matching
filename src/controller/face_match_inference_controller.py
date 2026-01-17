@@ -1,7 +1,7 @@
 import torch
 
-from model.networks.arcface_model import ArcFaceExtractor
-from model.networks.face_matcher import FaceMatcher
+from src.model.networks.arcface_model import ArcFaceExtractor
+from src.model.networks.face_matcher import FaceMatcher
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
