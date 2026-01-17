@@ -9,17 +9,16 @@ from model.datasets.data_preparation import generate_face_matching_pairs
 from scripts.prepare_data import prepare_dataset
 
 
-
 def parse_args():
     parser = argparse.ArgumentParser(
         description="ArcFace Threshold Selection & Evaluation"
     )
 
     parser.add_argument(
-        "--Dataset_dir",
+        "--dataset_dir",
         type=str,
         required=True,
-        help="Directory containing Dataset",
+        help="Root dataset directory (contains images/ and labels.csv)",
     )
 
     parser.add_argument(
@@ -49,7 +48,7 @@ def parse_args():
         "--output_dir",
         type=str,
         default="reports",
-        help="Directory to save results (if enabled)",
+        help="Directory to save results",
     )
 
     return parser.parse_args()
@@ -59,26 +58,34 @@ def main():
     args = parse_args()
 
     # --------------------------------------------------
-    # Threshold selection on TRAIN
+    # Ensure dataset exists
     # --------------------------------------------------
     prepare_dataset()
-    labels_csv = os.path.join(args.Dataset_dir, "labels.csv")
 
+    labels_csv = os.path.join(args.dataset_dir, "labels.csv")
+    images_dir = os.path.join(args.dataset_dir, "images")
+
+    # --------------------------------------------------
+    # Generate face matching pairs (identity-aware)
+    # --------------------------------------------------
     train_pairs, _ = generate_face_matching_pairs(
         input_csv=labels_csv,
-        output_csv=os.path.join(args.Dataset_dir, "train_pairs.csv"),
-        split="train"
+        output_csv=os.path.join(args.dataset_dir, "train_pairs.csv"),
+        split="train",
     )
 
     test_pairs, _ = generate_face_matching_pairs(
         input_csv=labels_csv,
-        output_csv=os.path.join(args.Dataset_dir, "test_pairs.csv"),
-        split="test"
+        output_csv=os.path.join(args.dataset_dir, "test_pairs.csv"),
+        split="test",
     )
 
+    # --------------------------------------------------
+    # Threshold selection on TRAIN
+    # --------------------------------------------------
     best_threshold, train_table = select_threshold_on_train(
         train_pairs_csv=train_pairs,
-        images_dir=os.path.join(args.Dataset_dir, "images"),
+        images_dir=images_dir,
         thresholds=args.thresholds,
         optimize_metric=args.optimize_metric,
     )
@@ -92,7 +99,7 @@ def main():
     # --------------------------------------------------
     test_table = evaluate_chosen_threshold_on_test(
         test_pairs_csv=test_pairs,
-        images_dir=os.path.join(args.Dataset_dir, "images"),
+        images_dir=images_dir,
         threshold=best_threshold,
     )
 
@@ -100,13 +107,17 @@ def main():
     print(test_table.to_string(index=False))
 
     # --------------------------------------------------
-    # Save results (optional)
+    # Save results
     # --------------------------------------------------
     if args.save_results:
         os.makedirs(args.output_dir, exist_ok=True)
 
-        train_path = os.path.join(args.output_dir, "threshold_selection_train.csv")
-        test_path = os.path.join(args.output_dir, "final_test_evaluation.csv")
+        train_path = os.path.join(
+            args.output_dir, "threshold_selection_train.csv"
+        )
+        test_path = os.path.join(
+            args.output_dir, "final_test_evaluation.csv"
+        )
 
         train_table.to_csv(train_path, index=False)
         test_table.to_csv(test_path, index=False)
