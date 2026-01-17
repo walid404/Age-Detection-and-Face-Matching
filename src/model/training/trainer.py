@@ -1,5 +1,5 @@
 import torch
-from model.utils.metrics import mae, mse, rmse, r2_score
+from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error, root_mean_squared_error
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -43,12 +43,12 @@ def evaluate_full(model, dataloader):
             preds_all.append(preds)
             targets_all.append(y)
 
-    preds_all = torch.cat(preds_all)
-    targets_all = torch.cat(targets_all)
+    preds_all = torch.cat(preds_all).detach().cpu().numpy()
+    targets_all = torch.cat(targets_all).detach().cpu().numpy()
 
     return {
-        "mae": mae(preds_all, targets_all),
-        "mse": mse(preds_all, targets_all),
-        "rmse": rmse(preds_all, targets_all),
+        "mae": mean_absolute_error(preds_all, targets_all),
+        "mse": mean_squared_error(preds_all, targets_all),
+        "rmse": root_mean_squared_error(preds_all, targets_all),
         "r2": r2_score(preds_all, targets_all),
     }

@@ -8,14 +8,14 @@ import pandas as pd
 from tqdm import tqdm
 import random
 from itertools import combinations
-from model.datasets.identity_split import identity_aware_dataframe_split
+from src.model.datasets.identity_split import dataframe_identity_aware_split
 
 FGNET_URL = "http://yanweifu.github.io/FG_NET_data/FGNET.zip"
 
 
 def download_fgnet(dataset_root: str):
     os.makedirs(dataset_root, exist_ok=True)
-    zip_path = os.path.join('Dataset', "FGNET.zip")
+    zip_path = os.path.join(dataset_root, "FGNET.zip")
 
     if os.path.exists(zip_path):
         return zip_path
@@ -42,7 +42,7 @@ def extract_fgnet(zip_path: str, dataset_root: str):
 
     print("Extracting FG-NET dataset...")
     with zipfile.ZipFile(zip_path, "r") as zip_ref:
-        zip_ref.extractall('Dataset')
+        zip_ref.extractall(dataset_root)
 
     print("Extraction completed.")
 
@@ -129,7 +129,7 @@ def generate_face_matching_pairs(
     # --------------------------------------------------
     # Identity-aware split
     # --------------------------------------------------
-    df_train, df_val, df_test = identity_aware_dataframe_split(
+    df_train, df_val, df_test = dataframe_identity_aware_split(
         df, train_ratio, val_ratio, seed
     )
 
