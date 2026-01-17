@@ -1,8 +1,9 @@
 
 dataset:
-  root_dir: Dataset/FGNET
-  images_dir: Dataset/FGNET/images
-  labels_csv: Dataset/FGNET/labels.csv
+  dataset_root: src/Dataset
+  dataset_name: FGNET
+  images_dir_name: images
+  labels_csv_name: labels.csv
   img_size: 224
   train_split: 0.7
   val_split: 0.1
@@ -25,6 +26,9 @@ models:
 
 mlflow:
   experiment_name: Age_Prediction_Full_Comparison
-  model_dir: saved_models
+  model_dir: src/saved_models
+  sort_by_metric: test_mae
 
-
+reports:
+  plots_dir: src/reports/plots
+  tables_dir: src/reports/tables
