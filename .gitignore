@@ -1,3 +1,6 @@
+my_env
+mlruns
+mlflow.db
 src/Dataset/
 # Byte-compiled / optimized / DLL files
 __pycache__/
