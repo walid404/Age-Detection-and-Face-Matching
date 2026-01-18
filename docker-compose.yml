@@ -1,0 +1,28 @@
+version: "3.9"
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: app/API/Dockerfile
+    container_name: facial_api
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/Age-Detection-and-Face-Matching
+    restart: unless-stopped
+
+  flaskui:
+    build:
+      context: .
+      dockerfile: app/FlaskUI/Dockerfile
+    container_name: facial_flaskui
+    ports:
+      - "5000:5000"
+    depends_on:
+      - api
+    environment:
+      - API_URL=http://api:8000/v1/infer_age_and_match  # Use Docker service name
+    volumes:
+      - .:/Age-Detection-and-Face-Matching
+    restart: unless-stopped

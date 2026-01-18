@@ -1,0 +1,2 @@
+-r app/API/requirements.txt
+-r app/FlaskUI/requirements.txt

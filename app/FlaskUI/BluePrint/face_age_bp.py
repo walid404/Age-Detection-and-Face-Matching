@@ -1,6 +1,5 @@
-from flask import Blueprint, render_template, request
+from flask import Blueprint, render_template, request, current_app
 import requests
-from app.FlaskUI.config import Config
 import base64
 
 
@@ -27,7 +26,7 @@ def face_age_page():
                 "image_file_2": img2,
             }
 
-            response = requests.post(Config.API_URL, files=files)
+            response = requests.post(current_app.config['API_URL'], files=files)
             response.raise_for_status()
 
             result = response.json()
