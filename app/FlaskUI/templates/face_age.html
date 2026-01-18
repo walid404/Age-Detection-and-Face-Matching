@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Face Matching & Age Prediction</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+<div class="app-container">
+
+    <h1>Face Matching & Age Prediction</h1>
+    <p class="subtitle">Upload two face images to predict age and identity match</p>
+
+    <form method="post" enctype="multipart/form-data">
+
+        <div class="cards">
+
+            <!-- IMAGE 1 -->
+            <div class="card">
+                {% if result %}
+                    <div class="age-badge">Age: {{ result.age_image_1 }}</div>
+                {% endif %}
+
+                <img id="img1"
+                     class="preview"
+                     src="{% if result %}
+                            data:image/jpeg;base64,{{ result.img1_b64 }}
+                          {% else %}
+                            {{ url_for('static', filename='placeholder.png') }}
+                          {% endif %}">
+
+                <input type="file"
+                       name="image1"
+                       accept="image/*"
+                       required
+                       onchange="previewImage(this, 'img1')">
+            </div>
+
+            <!-- IMAGE 2 -->
+            <div class="card">
+                {% if result %}
+                    <div class="age-badge">Age: {{ result.age_image_2 }}</div>
+                {% endif %}
+
+                <img id="img2"
+                     class="preview"
+                     src="{% if result %}
+                            data:image/jpeg;base64,{{ result.img2_b64 }}
+                          {% else %}
+                            {{ url_for('static', filename='placeholder.png') }}
+                          {% endif %}">
+
+                <input type="file"
+                       name="image2"
+                       accept="image/*"
+                       required
+                       onchange="previewImage(this, 'img2')">
+            </div>
+
+        </div>
+
+        <button type="submit" class="btn">Analyze</button>
+    </form>
+
+    {% if result %}
+    <div class="result-panel">
+        <h3>Matching Result</h3>
+
+        <div class="similarity-box">
+            <span>Similarity</span>
+            <span>{{ "%.2f"|format(result.similarity) }}</span>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress"
+                 style="width: {{ (result.similarity * 100)|round(2) }}%;">
+            </div>
+        </div>
+
+        {% if result.match == 1 %}
+            <div class="match-pill success">Same Person</div>
+        {% else %}
+            <div class="match-pill danger">Different Persons</div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+</div>
+
+<script>
+function previewImage(input, imgId) {
+    const file = input.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = e => {
+        document.getElementById(imgId).src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+</script>
+
+</body>
+</html>
