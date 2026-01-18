@@ -1,12 +1,12 @@
 import argparse
 import os
 
-from controller.face_match_threshold_selection_controller import (
+from src.controller.face_match_threshold_selection_controller import (
     select_threshold_on_train,
     evaluate_chosen_threshold_on_test,
 )
-from model.datasets.data_preparation import generate_face_matching_pairs
-from scripts.prepare_data import prepare_dataset
+from src.model.datasets.data_preparation import generate_face_matching_pairs
+from src.scripts.prepare_data import prepare_dataset
 
 
 
@@ -14,14 +14,30 @@ def parse_args():
     parser = argparse.ArgumentParser(
         description="ArcFace Threshold Selection & Evaluation"
     )
-
     parser.add_argument(
-        "--Dataset_dir",
+        "--dataset_root",
         type=str,
-        required=True,
-        help="Directory containing Dataset",
+        default='src/Dataset',
+        help="Directory containing Datasets",
     )
-
+    parser.add_argument(
+        "--dataset_name",
+        type=str,
+        default="FGNET",
+        help="Directory of the FG-NET Dataset",
+    )
+    parser.add_argument(
+        "--labels_csv_name",
+        type=str,
+        default="labels.csv",
+        help="Name of the labels CSV file",
+    )
+    parser.add_argument(
+        "--images_dir_name",
+        type=str,
+        default="images",
+        help="Name of the images directory",
+    )
     parser.add_argument(
         "--thresholds",
         type=float,
@@ -29,7 +45,6 @@ def parse_args():
         default=[0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6],
         help="List of thresholds to evaluate",
     )
-
     parser.add_argument(
         "--optimize_metric",
         type=str,
@@ -37,21 +52,18 @@ def parse_args():
         choices=["accuracy", "precision", "recall", "f1"],
         help="Metric used to select best threshold",
     )
-
     parser.add_argument(
         "--save_results",
-        action="store_true",
+        type=bool,
         default=True,
         help="Save results to CSV files",
     )
-
     parser.add_argument(
         "--output_dir",
         type=str,
-        default="reports",
+        default="reports/tables",
         help="Directory to save results (if enabled)",
     )
-
     return parser.parse_args()
 
 
@@ -61,7 +73,8 @@ def main():
     # --------------------------------------------------
     # Threshold selection on TRAIN
     # --------------------------------------------------
-    prepare_dataset()
+    prepare_dataset(args.dataset_root, args.dataset_name,
+                    args.images_dir_name, args.labels_csv_name)
     labels_csv = os.path.join(args.Dataset_dir, "labels.csv")
 
     train_pairs, _ = generate_face_matching_pairs(

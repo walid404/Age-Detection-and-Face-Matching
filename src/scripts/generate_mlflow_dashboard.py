@@ -2,18 +2,46 @@ import mlflow
 import pandas as pd
 import matplotlib.pyplot as plt
 import os
-
-EXPERIMENT_NAME = "Age_Prediction_Full_Comparison"
-OUT_DIR = "eda/eda_plots"
-TABLE_DIR = "reports"
-
-os.makedirs(OUT_DIR, exist_ok=True)
-os.makedirs(TABLE_DIR, exist_ok=True)
+import argparse
 
 
-def generate_dashboard():
+def parse_args():
+    parser = argparse.ArgumentParser(description="Generate MLflow Dashboard for Experiment")
+    parser.add_argument(
+        "--experiment_name",
+        type=str,
+        default="Age_Prediction_Full_Comparison",
+        help="MLflow experiment name containing the runs to analyze"
+    )
+    parser.add_argument(
+        "--plots_dir",
+        type=str,
+        default="src/reports/plots",
+        help="Directory to save the generated plots"
+    )
+    parser.add_argument(
+        "--tables_dir",
+        type=str,
+        default="src/reports/tables",
+        help="Directory to save the generated tables"
+    )
+    parser.add_argument(
+        "--sort_by_metric",
+        type=str,
+        default="test_mse",
+        help="Metric to sort the comparison table by"
+    )
+    return parser.parse_args()
+
+
+def generate_dashboard(experiment_name: str = "Age_Prediction_Full_Comparison",
+                       plots_dir: str = "src/reports/plots",
+                       tables_dir: str = "src/reports/tables",
+                       sort_by_metric: str = "test_mse"):
+    os.makedirs(plots_dir, exist_ok=True)
+    os.makedirs(tables_dir, exist_ok=True)
     client = mlflow.tracking.MlflowClient()
-    experiment = client.get_experiment_by_name(EXPERIMENT_NAME)
+    experiment = client.get_experiment_by_name(experiment_name)
     runs = client.search_runs(experiment.experiment_id)
 
     records = []
@@ -27,7 +55,6 @@ def generate_dashboard():
             "split": p.get("split_strategy"),
             "batch_size": int(p.get("batch_size")),
             "lr": float(p.get("learning_rate")),
-            "epochs_run": int(p.get("epochs_run")),
             "stop_epoch": int(p.get("stop_epoch")),
             "training_time_min": m.get("training_time_min"),
 
@@ -38,7 +65,7 @@ def generate_dashboard():
         })
 
     df = pd.DataFrame(records)
-
+    df = df.sort_values(by=sort_by_metric)
     # --------------------------------------------------
     # Round numeric values to 2 decimals
     # --------------------------------------------------
@@ -48,11 +75,11 @@ def generate_dashboard():
     # --------------------------------------------------
     # Save comparison table
     # --------------------------------------------------
-    table_path = os.path.join(TABLE_DIR, "model_comparison_with_time.csv")
-    df.sort_values(by="test_mae").to_csv(table_path, index=False)
+    table_path = os.path.join(tables_dir, "model_comparison_with_time.csv")
+    df.to_csv(table_path, index=False)
 
     print("\n=== Model Comparison Table ===")
-    print(df.sort_values(by="test_mae"))
+    print(df)
 
     # --------------------------------------------------
     # Visualization: Accuracy vs Training Time
@@ -71,7 +98,7 @@ def generate_dashboard():
     plt.title("Accuracy vs Training Time")
     plt.legend()
 
-    plot_path = os.path.join(OUT_DIR, "accuracy_vs_training_time.png")
+    plot_path = os.path.join(plots_dir, "accuracy_vs_training_time.png")
     plt.savefig(plot_path)
     plt.close()
 
@@ -83,18 +110,16 @@ def generate_dashboard():
     plt.title("Stop Epoch Distribution")
     plt.suptitle("")
     plt.ylabel("Epoch")
-    stop_epoch_plot = os.path.join(OUT_DIR, "stop_epoch_distribution.png")
+    stop_epoch_plot = os.path.join(plots_dir, "stop_epoch_distribution.png")
     plt.savefig(stop_epoch_plot)
     plt.close()
 
-    # --------------------------------------------------
-    # Log artifacts to MLflow
-    # --------------------------------------------------
-    with mlflow.start_run(run_name="dashboard_summary"):
-        mlflow.log_artifact(table_path)
-        mlflow.log_artifact(plot_path)
-        mlflow.log_artifact(stop_epoch_plot)
-
 
 if __name__ == "__main__":
-    generate_dashboard()
+    args = parse_args()
+    generate_dashboard(
+        args.experiment_name, 
+        args.plots_dir, 
+        args.tables_dir, 
+        args.sort_by_metric
+    )
