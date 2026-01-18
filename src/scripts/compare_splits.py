@@ -1,13 +1,13 @@
+import os
 import mlflow
 import pandas as pd
 import matplotlib.pyplot as plt
+import argparse
 
-EXPERIMENT_NAME = "Age_Prediction_Split_Comparison"
 
-
-def compare_split_performance():
+def compare_split_performance(plots_dir: str = "src/eda/eda_plots", experiment_name: str = "Age_Prediction_Split_Comparison"):
     client = mlflow.tracking.MlflowClient()
-    exp = client.get_experiment_by_name(EXPERIMENT_NAME)
+    exp = client.get_experiment_by_name(experiment_name)
     runs = client.search_runs(exp.experiment_id)
 
     records = []
@@ -25,9 +25,29 @@ def compare_split_performance():
     plt.title("Random vs Identity Split – Test MAE")
     plt.suptitle("")
     plt.ylabel("MAE")
-    plt.savefig("eda/eda_plots/split_comparison.png")
+    plt.savefig(os.path.join(plots_dir, "split_comparison.png"))
     plt.close()
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="Compare Split Strategies Performance")
+    parser.add_argument(
+        "--plots_dir",
+        type=str,
+        default="src/report/plots",
+        help="Directory to save the comparison plot"
+    )
+    parser.add_argument(
+        "--experiment_name",
+        type=str,
+        default="Age_Prediction_Split_Comparison",
+        help="MLflow experiment name containing the runs to compare"
+    )
+    return parser.parse_args()
 
 
 if __name__ == "__main__":
-    compare_split_performance()
+    args = parse_args()
+    compare_split_performance(
+        args.save_path,
+        args.experiment_name
+    )

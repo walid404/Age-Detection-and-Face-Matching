@@ -1,16 +1,31 @@
-import os
 import yaml
-from controller.train_controller import run_training
-from scripts.generate_comparison_tables import generate_tables
+from src.controller.train_controller import run_training
+from src.scripts.generate_mlflow_dashboard import generate_dashboard
+from src.scripts.compare_splits import compare_split_performance
+from src.view.eda_plots import eda_plots
 
 
 def main():
 
-    with open("config/config.yaml", "r") as f:
+    with open("src/config/config.yaml", "r") as f:
         config = yaml.safe_load(f)
-
+    
+    eda_plots(
+        config["reports"]["plots_dir"],
+        config["dataset"]["dataset_root"],
+        config["dataset"]["dataset_name"],
+        config["dataset"]["labels_csv_name"]
+    )
     run_training(config)
-    generate_tables()
+    compare_split_performance(
+        plots_dir=config["reports"]["plots_dir"],
+        experiment_name=config["mlflow"]["experiment_name"]
+    )
+    generate_dashboard(
+        config["mlflow"]["experiment_name"],
+        config["reports"]["plots_dir"],
+        config["reports"]["tables_dir"],
+        config["mlflow"]["sort_by_metric"])
 
 
 if __name__ == "__main__":

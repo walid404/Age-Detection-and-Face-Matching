@@ -1,7 +1,7 @@
 import pandas as pd
 from tqdm import tqdm
 
-from controller.face_match_evaluation_controller import evaluate_face_matching
+from src.controller.face_match_evaluation_controller import evaluate_face_matching
 
 
 def select_threshold_on_train(

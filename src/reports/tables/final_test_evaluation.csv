@@ -1,0 +1,2 @@
+threshold,accuracy,precision,recall,f1,avg_similarity_match,avg_similarity_non_match
+0.25,0.7939,0.7753,0.8351,0.8041,0.4453,0.1763

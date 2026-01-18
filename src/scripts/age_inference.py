@@ -1,43 +1,54 @@
 import torch
-from torchvision import transforms
-from PIL import Image
 import argparse
-from model.networks.age_models import get_age_model
+from src.controller.age_inference_controller import predict_age
+from src.model.utils.load import load_model, load_image
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 
-def load_model(model_name, checkpoint_path):
-    model = get_age_model(model_name)
-    model.load_state_dict(torch.load(checkpoint_path, map_location=DEVICE))
-    model.to(DEVICE)
-    model.eval()
-    return model
-
-
 def predict(image_path, model_name, checkpoint_path, img_size=224):
-    transform = transforms.Compose([
-        transforms.Resize((img_size, img_size)),
-        transforms.ToTensor(),  # [0,1]
-    ])
-
-    image = Image.open(image_path).convert("RGB")
-    image = transform(image).unsqueeze(0).to(DEVICE)
-
+    
+    image = load_image(image_path)
     model = load_model(model_name, checkpoint_path)
-
-    with torch.no_grad():
-        prediction = model(image).item()
+    prediction = predict_age(model, image, img_size)
 
     return prediction
 
+def parse_args():
+    parser = argparse.ArgumentParser(description="Age Prediction Inference")
+    parser.add_argument(
+        "--image_path", 
+        type=str, 
+        required=True, 
+        help="Path to the input image"
+    )
+    parser.add_argument(
+        "--model", 
+        type=str, 
+        required=True, 
+        help="Model architecture name"
+    )
+    parser.add_argument(
+        "--checkpoint", 
+        type=str, 
+        required=True, 
+        help="Path to the model checkpoint"
+    )
+    parser.add_argument(
+        "--img_size", 
+        type=int, 
+        default=224, 
+        help="Input image size for the model"
+    )
+    return parser.parse_args()
+
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--image_name", required=True)
-    parser.add_argument("--model", required=True)
-    parser.add_argument("--checkpoint", required=True)
-    args = parser.parse_args()
-
-    age = predict(args.image_name, args.model, args.checkpoint)
-    print(f"Predicted Age: {age:int}")
+    args = parse_args()
+    age = predict(
+        args.image_path, 
+        args.model, 
+        args.checkpoint, 
+        args.img_size
+    )
+    print(f"Predicted Age: {age}")

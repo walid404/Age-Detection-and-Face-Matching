@@ -2,7 +2,7 @@ import os
 import pandas as pd
 import torch
 from torch.utils.data import Dataset
-from PIL import Image
+from src.model.utils.load import load_image
 
 
 class AgeDataset(Dataset):
@@ -25,7 +25,7 @@ class AgeDataset(Dataset):
         row = self.data.iloc[idx]
 
         img_path = os.path.join(self.images_dir, row["image_name"])
-        image = Image.open(img_path).convert("RGB")
+        image = load_image(img_path)
 
         if self.transform:
             image = self.transform(image)

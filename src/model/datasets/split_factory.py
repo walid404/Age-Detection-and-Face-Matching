@@ -1,5 +1,5 @@
-from model.datasets.identity_split import (
-    identity_aware_split,
+from src.model.datasets.identity_split import (
+    dataset_identity_aware_split,
     random_dataset_split,
     check_identity_leakage
 )
@@ -12,7 +12,7 @@ def split_dataset(dataset, config):
     val_ratio = config["dataset"]["val_split"]
 
     if strategy == "identity":
-        train_set, val_set, test_set = identity_aware_split(
+        train_set, val_set, test_set = dataset_identity_aware_split(
             dataset, train_ratio, val_ratio
         )
         check_identity_leakage(train_set, val_set, test_set)
