@@ -1,31 +1,69 @@
 # Age Detection and Face Matching
 
-A comprehensive deep learning project for **age prediction** and **face identity matching** using the FG-NET dataset. This project combines age estimation with face recognition to enable age-aware identity verification.
+A comprehensive deep learning project focused on **age prediction** and **face identity matching** using the FG-NET dataset. The project integrates age estimation with face recognition to enable age-aware identity verification. It follows a **two-stage** modeling approach, where the first stage predicts age using modern deep learning architectures such as **MobileNet**, and the second stage performs face identity matching using the **ArcFace** framework for robust and discriminative facial embeddings.
 
-## 🎯 Project Overview
+The project supports multiple inference interfaces:
+- Command Line Interface (CLI)
+- REST API (FastAPI)
+- Web Interface (Flask UI)
+- Docker Compose for containerized deployment
 
-This project implements two main pipelines:
+------------------------------------------------------------------------
 
-1. **Age Prediction**: Predicts the age of a person in an image using various CNN architectures (ResNet, MobileNet, EfficientNet, etc.)
-2. **Face Matching**: Performs face identity verification using ArcFace embeddings with adjustable similarity thresholds
+## ✨ Features
 
-### Key Features
-
-- ✅ **Multiple Model Architectures**: ResNet18, ResNet34, ResNet50, MobileNet, AlexNet, EfficientNet
+- ✅ **Age Prediction**: CNN-based age estimation from facial images
+- ✅ **Face Matching**: Identity verification using ArcFace embeddings
+- ✅ **Multiple Model Architectures**: ResNet18/34/50, MobileNet, AlexNet, EfficientNet
 - ✅ **Identity-Aware Data Splits**: Prevents identity leakage between train/val/test sets
-- ✅ **Early Stopping**: Prevents overfitting with patience-based early stopping
+- ✅ **CLI, API, and Web UI Inference**: Multiple ways to use the models
+- ✅ **Docker & Docker Compose Support**: Easy containerized deployment
 - ✅ **MLflow Tracking**: Comprehensive experiment logging and comparison
 - ✅ **Threshold Optimization**: Automatic face matching threshold selection
 - ✅ **Data Visualization**: EDA plots, identity distributions, loss curves, and predictions
+
+------------------------------------------------------------------------
+
+## 📥 Clone the Repository
+
+```bash
+git clone https://github.com/walid404/Age-Detection-and-Face-Matching.git
+cd Age-Detection-and-Face-Matching
+```
+
+------------------------------------------------------------------------
 
 ## 📁 Project Structure
 
 ```
 Age-Detection-and-Face-Matching/
+├── app/
+│   ├── API/
+│   │   ├── main.py                     # FastAPI application
+│   │   ├── client_request_sample.py    # API client example
+│   │   ├── Dockerfile
+│   │   ├── requirements.txt
+│   │   └── core/
+│   │       └── model_loader.py         # Model initialization
+│   │   └── routes/
+│   │       ├── base_route.py           # Base route handlers
+│   │       └── age_face_route.py       # Age/Face matching endpoints
+│   └── FlaskUI/
+│       ├── main.py                     # Flask application
+│       ├── config.py                   # Flask configuration
+│       ├── Dockerfile
+│       ├── requirements.txt
+│       ├── BluePrint/
+│       │   └── face_age_bp.py          # Blueprint for face/age routes
+│       ├── static/
+│       │   ├── style.css
+│       │   └── generated_results/      # Output directory for generated results
+│       └── templates/
+│           └── face_age.html           # Web interface template
 ├── src/
 │   ├── config/
 │   │   └── config.yaml                 # Configuration file
-│   ├── controller/                     # Business logic
+│   ├── controller/                     # inference logic
 │   │   ├── age_inference_controller.py
 │   │   ├── age_face_inference_controller.py
 │   │   ├── face_match_inference_controller.py
@@ -70,102 +108,176 @@ Age-Detection-and-Face-Matching/
 │   │   ├── plots/                      # Generated visualizations
 │   │   └── tables/                     # Results tables (CSV)
 │   └── requirements.txt                # Python dependencies
-├── .gitignore
+├── docker-compose.yml
+├── requirements.txt
 └── README.md
 ```
 
-## 🔧 Environment Setup
+------------------------------------------------------------------------
+
+## ⚙️ Setup & Installation
 
 ### Prerequisites
 
-- Python 3.9+ 
+- Python 3.9+
 - pip or conda
 - CUDA 11.8+ (optional, for GPU acceleration)
 
 ### Installation
 
-#### 1. Clone the Repository
-
-```bash
-git clone https://github.com/walid404/Age-Detection-and-Face-Matching.git
-cd Age-Detection-and-Face-Matching
-```
-
 #### 2. Create Virtual Environment
 
 ```bash
-# Using venv
 python -m venv my_env
-source my_env/bin/activate  # On Windows: my_env\Scripts\activate
 
-# OR using conda
-conda create -n age-detection python=3.9
-conda activate age-detection
+# Windows
+my_env\Scripts\activate
+
+# macOS / Linux
+source my_env/bin/activate
 ```
 
 #### 3. Install Dependencies
 
 ```bash
-cd src
 pip install -r requirements.txt
 ```
 
-**Dependencies**:
-- `torch==2.9.1` - Deep learning framework
-- `torchvision==0.24.1` - Computer vision utilities
-- `deepface==0.0.97` - Face recognition (ArcFace)
-- `mlflow==3.8.1` - Experiment tracking
-- `scikit-learn==1.8.0` - Metrics & utilities
-- `pillow==12.1.0` - Image processing
-- `PyYAML==6.0.3` - Configuration files
-- `tqdm==4.67.1` - Progress bars
-- `requests==2.32.5` - HTTP library
+------------------------------------------------------------------------
 
-## 📊 Data Preparation
+## 🚀 Running the Project
 
-### Automatic Dataset Download
-
-The FG-NET dataset will be automatically downloaded and extracted during the first run:
+### 1️⃣ Basic Usage --- CLI Inference (Age Prediction)
 
 ```bash
-cd src
-python scripts/prepare_data.py \
-  --dataset_root Dataset \
-  --dataset_name FGNET \
-  --images_dir_name images \
-  --labels_csv_name labels.csv
+python -m src.scripts.age_inference \
+  --image_path "src/image_samples/sample_image.jpg" \
+  --model mobilenet \
+  --checkpoint "src/saved_models/mobilenet_identity_bs16_lr0.0005_ep60.pt" \
+  --img_size 224
 ```
 
-This will:
-1. Download the FG-NET dataset (~500MB)
-2. Extract images to `src/Dataset/FGNET/images/`
-3. Generate `labels.csv` with person_id and age annotations
-
-**Dataset Format**:
-- **Images**: JPEG files with naming convention `{person_id:03d}A{age:02d}.jpg`
-- **Labels CSV**: Columns `[image_name, person_id, age]`
-
-### Generated Pair Data
-
-For face matching tasks, face pair datasets are generated:
+📂 Generated results will be saved under:
 
 ```bash
-python scripts/face_match_threshold_selection.py
+src/generated_results/
 ```
 
-This creates:
-- `train_pairs.csv` - Training face pairs (positive & negative)
-- `test_pairs.csv` - Test face pairs (positive & negative)
+------------------------------------------------------------------------
 
-## 🚀 Quick Start
+### 2️⃣ Advanced Usage --- REST API (FastAPI)
 
-### 1. Run Full Experiment Pipeline
+#### Start the API server
+
+```bash
+uvicorn app.API.main:app --host 0.0.0.0 --port 8000
+```
+
+#### Call the API using the provided client script
+
+##### Windows (PowerShell)
+
+```bash
+python "app\API\client_request_sample.py" `
+  --image1_path "src/image_samples/001A08.jpg" `
+  --image2_path "src/image_samples/001A16.jpg" `
+  --api_url "http://localhost:8000/v1/infer_age_and_match" `
+  --threshold 0.25
+```
+
+##### Linux / macOS
+
+```bash
+python "app/API/client_request_sample.py" \
+  --image1_path "src/image_samples/001A08.jpg" \
+  --image2_path "src/image_samples/001A16.jpg" \
+  --api_url "http://localhost:8000/v1/infer_age_and_match" \
+  --threshold 0.25
+```
+
+#### Using curl
+
+```bash
+curl -X POST "http://localhost:8000/v1/infer_age_and_match" \
+  -F "image1=@src/image_samples/001A08.jpg" \
+  -F "image2=@src/image_samples/001A16.jpg" \
+  -F "threshold=0.25"
+```
+
+------------------------------------------------------------------------
+
+### 3️⃣ Flask Web UI
+
+**Flask web interface for age detection and face matching:**
+
+Start the Flask application:
+
+```bash
+python -m app.FlaskUI.main
+```
+
+
+Then open your browser and go to:
+
+```text
+http://localhost:5000
+```
+
+------------------------------------------------------------------------
+
+## 🐳 Docker Compose Deployment
+
+```bash
+docker-compose up --build
+```
+
+Access the Flask UI at:
+
+```text
+http://localhost:5000
+```
+
+Access the FastAPI at:
+
+```text
+http://localhost:8000/docs
+```
+
+------------------------------------------------------------------------
+
+## 📌 Notes
+
+- **Generated Outputs**
+  - CLI results are saved to:
+    - `src/generated_results/`
+    - `app/FlaskUI/static/generated_results/` (used by the Flask UI)
+
+- **API Configuration**
+  - When running the API or Flask UI on a remote machine, update the API base URL in client scripts and ensure the required ports are open and accessible.
+
+- **Model Weights & Reproducibility**
+  - This project relies on pre-trained model weights located at:
+    - `src/saved_models/mobilenet_identity_bs16_lr0.0005_ep60.pt` (Age Prediction)
+    - DeepFace ArcFace weights (automatically downloaded for Face Matching)
+  - For reproducible results, ensure the same weights file is used across all environments (CLI, API, and Docker).
+
+
+```bash
+python src/scripts/age_inference.py \
+  --image_path src/image_samples/001A08.jpg \
+  --model mobilenet \
+  --checkpoint src/saved_models/mobilenet_identity_bs16_lr0.0005_ep60.pt \
+  --img_size 224
+```
+
+**Output**: Predicted age as integer
+
+### 4. Run Full Experiment Pipeline
 
 Execute the complete end-to-end pipeline:
 
 ```bash
-cd src
-python scripts/run_full_experiment.py
+python src/scripts/run_full_experiment.py
 ```
 
 This will:
@@ -174,59 +286,11 @@ This will:
 - Compare random vs identity-aware data splits
 - Generate MLflow dashboards and comparison tables
 
-### 2. Age Prediction (Single Image)
+------------------------------------------------------------------------
 
-```bash
-cd src
-python scripts/age_inference.py \
-  --image_path path/to/image.jpg \
-  --model mobilenet \
-  --checkpoint saved_models/mobilenet_identity_bs16_lr0.0005_ep60.pt \
-  --img_size 224
-```
+## 📊 Training & Advanced Usage
 
-**Output**: Predicted age as integer
-
-### 3. Age-Aware Face Matching (Two Images)
-
-```bash
-cd src
-python scripts/face_age_inference.py \
-  --image1 path/to/person1.jpg \
-  --image2 path/to/person2.jpg \
-  --model mobilenet \
-  --weights saved_models/mobilenet_identity_bs16_lr0.0005_ep60.pt \
-  --threshold 0.45
-```
-
-**Output**:
-```json
-{
-  "image_1": {
-    "path": "...",
-    "predicted_age": 25
-  },
-  "image_2": {
-    "path": "...",
-    "predicted_age": 28
-  },
-  "match": 1,
-  "similarity": 0.67
-}
-```
-
-### 4. Run EDA Only
-
-```bash
-cd src
-python scripts/run_eda.py \
-  --plot_dir reports/plots \
-  --dataset_root Dataset \
-  --dataset_name FGNET \
-  --labels_csv_name labels.csv
-```
-
-## ⚙️ Configuration
+### Configuration
 
 Edit `src/config/config.yaml` to customize training:
 
@@ -240,25 +304,29 @@ dataset:
   split_strategies: ["random", "identity"]
 
 training:
-  batch_size: [16, 32]              # Multiple values for grid search
-  epochs: [20, 40]
-  learning_rate: [0.0001, 0.0005]
-  loss: mse                          # or "mae"
-  patience: 5                        # Early stopping patience
+  batch_size: [16, 32]
+  epochs: [60]
+  learning_rate: [0.0005]
+  loss: mse
+  patience: 5
 
 models:
   names:
-    - resnet18
     - mobilenet
+    - resnet18
     - efficientnet
-    # Add more: resnet34, resnet50, alexnet
-
-mlflow:
-  experiment_name: Age_Prediction_Full_Comparison
-  model_dir: src/saved_models
 ```
 
-## 📈 Training & Evaluation
+### Data Preparation
+
+The FG-NET dataset will be automatically downloaded during the first run:
+
+```bash
+cd src
+python scripts/prepare_data.py \
+  --dataset_root Dataset \
+  --dataset_name FGNET
+```
 
 ### Model Architectures
 
@@ -268,29 +336,17 @@ Supported age prediction models:
 - **EfficientNet**: State-of-the-art efficiency
 - **AlexNet**: Classic deep CNN
 
-All use **pretrained ImageNet weights** and are fine-tuned on FG-NET.
+### View MLflow Results
 
-### Training Details
+```bash
+mlflow ui --host 127.0.0.1 --port 5000
+```
 
-- **Loss Function**: MSE or MAE
-- **Optimizer**: Adam with learning rate scheduling
-- **LR Scheduler**: ReduceLROnPlateau (reduces LR on validation loss plateau)
-- **Early Stopping**: Stops training if validation loss doesn't improve for N epochs
+Open http://localhost:5000 in your browser.
 
-### Data Splitting Strategies
+------------------------------------------------------------------------
 
-#### Random Split
-- Simple image-level split (train/val/test ratios: 70/10/20)
-- **Risk**: Identity leakage (same person in multiple splits)
-
-#### Identity-Aware Split ⭐ (Recommended)
-- Ensures each person appears in only ONE split
-- Prevents identity information leakage
-- More realistic evaluation of model generalization
-
-## 📊 Results & Evaluation
-
-### Metrics
+## 📈 Evaluation Metrics
 
 **Age Prediction**:
 - MAE (Mean Absolute Error)
@@ -303,135 +359,34 @@ All use **pretrained ImageNet weights** and are fine-tuned on FG-NET.
 - Precision
 - Recall
 - F1-Score
-- Average Similarity (for match/non-match pairs)
+- Similarity Score
 
-### View Results
+------------------------------------------------------------------------
 
-```bash
-cd src
-
-# Generate MLflow dashboard
-python scripts/generate_mlflow_dashboard.py \
-  --experiment_name Age_Prediction_Full_Comparison \
-  --plots_dir reports/plots \
-  --tables_dir reports/tables
-
-# View MLflow UI
-mlflow ui --host 127.0.0.1 --port 5000
-# Open http://localhost:5000 in browser
-```
-
-### Exported Artifacts
-
-- `reports/plots/` - Visualizations (loss curves, predictions, distributions)
-- `reports/tables/` - Comparison tables (CSV format)
-- `saved_models/` - Trained model weights (.pt files)
-- `mlruns/` - MLflow tracking data
-
-## 🔍 Advanced Usage
+## 🔍 Additional Features
 
 ### Face Matching Threshold Selection
 
-Automatically find the optimal similarity threshold:
-
 ```bash
-cd src
-python scripts/face_match_threshold_selection.py \
-  --dataset_root Dataset \
+python src/scripts/face_match_threshold_selection.py \
+  --dataset_root src/Dataset \
   --dataset_name FGNET \
   --thresholds 0.3 0.35 0.4 0.45 0.5 0.55 0.6 \
-  --optimize_metric f1 \
-  --save_results True
+  --optimize_metric f1
 ```
 
-### Compare Split Strategies
-
-Analyze performance difference between random and identity-aware splits:
+### Compare Data Split Strategies
 
 ```bash
-cd src
-python scripts/compare_splits.py \
+python src/scripts/compare_splits.py \
   --experiment_name Age_Prediction_Full_Comparison \
-  --plots_dir reports/plots
+  --plots_dir src/reports/plots
 ```
 
-### Batch Inference
+------------------------------------------------------------------------
 
-Process multiple images for age prediction or face matching using the controller classes:
-
-```python
-from src.controller.age_face_inference_controller import AgeFaceMatchingInference
-
-pipeline = AgeFaceMatchingInference(
-    age_model_name="mobilenet",
-    age_model_weights="src/saved_models/mobilenet_identity_bs16_lr0.0005_ep60.pt",
-    match_threshold=0.45
-)
-
-result = pipeline.infer("image1.jpg", "image2.jpg")
-print(result)
-```
-
-## 🔗 Key Classes & Functions
-
-### Model Loading
-- [`load_model()`](src/model/utils/load.py) - Load pretrained age models
-- [`get_age_model()`](src/model/networks/age_models.py) - Create model architecture
-
-### Datasets
-- [`AgeDataset`](src/model/datasets/age_dataset.py) - PyTorch Dataset for age data
-- [`identity_aware_split()`](src/model/datasets/identity_split.py) - Identity-aware splitting
-- [`generate_face_matching_pairs()`](src/model/datasets/data_preparation.py) - Create pair datasets
-
-### Face Matching
-- [`ArcFaceExtractor`](src/model/networks/arcface_model.py) - Extract face embeddings
-- [`FaceMatcher`](src/model/networks/face_matcher.py) - Match faces by similarity
-
-### Training
-- [`train_epoch()`](src/model/training/trainer.py) - Single training epoch
-- [`evaluate_full()`](src/model/training/trainer.py) - Full evaluation metrics
-- [`EarlyStopping`](src/model/training/early_stopping.py) - Early stopping logic
-
-## 🐛 Troubleshooting
-
-### CUDA/GPU Issues
-```bash
-# Check GPU availability
-python -c "import torch; print(torch.cuda.is_available())"
-
-# If False, install CPU-only PyTorch:
-pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
-```
-
-### DeepFace Model Download
-The first face matching call downloads pre-trained models (~300MB). Ensure internet connectivity.
-
-### Memory Issues
-- Reduce `batch_size` in config.yaml
-- Use `--model mobilenet` (lighter than ResNet50)
-- Process images one-at-a-time instead of batches
-
-### Dataset Not Found
-```bash
-# Re-download and prepare dataset
-cd src
-python scripts/prepare_data.py
-```
-
-## 📚 Citation & References
+## 📝 Citation & References
 
 - **FG-NET Dataset**: [Aging Database](https://yanweifu.github.io/FG_NET_data/)
-- **ArcFace**: [Deep Insight](https://github.com/deepinsight/insightface)
-- **MLflow**: [MLflow Documentation](https://mlflow.org/docs)
-
-## 📝 License
-
-This project is part of CYSheild Tasks. 
-
-## ✉️ Contact
-
-For issues or questions, please open an issue on the GitHub repository.
-
----
-
-**Happy experimenting!** 🚀
+- **ArcFace**: [Deepface implementation](https://github.com/serengil/deepface)
+- **Age Prediction**: [Paper](https://www.sciencedirect.com/science/article/pii/S1877050924012663)
