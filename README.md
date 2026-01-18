@@ -215,7 +215,7 @@ Start the Flask application:
 ```bash
 python -m app.FlaskUI.main
 ```
-
+![Flask UI](src/Images_for_readme/FlaskUI.png)
 
 Then open your browser and go to:
 
