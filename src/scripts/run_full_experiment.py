@@ -10,17 +10,17 @@ def main():
 
     with open("src/config/config.yaml", "r") as f:
         config = yaml.safe_load(f)
-    
-    eda_plots(
-        config["reports"]["plots_dir"],
-        config["dataset"]["dataset_root"],
-        config["dataset"]["dataset_name"],
-        config["dataset"]["labels_csv_name"]
-    )
+        
     prepare_dataset(
         config["dataset"]["dataset_root"],
         config["dataset"]["dataset_name"],
         config["dataset"]["images_dir_name"],
+        config["dataset"]["labels_csv_name"]
+    )
+    eda_plots(
+        config["reports"]["plots_dir"],
+        config["dataset"]["dataset_root"],
+        config["dataset"]["dataset_name"],
         config["dataset"]["labels_csv_name"]
     )
     run_training(config)
