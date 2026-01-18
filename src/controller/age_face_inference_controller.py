@@ -1,6 +1,8 @@
 import torch
 from src.controller.age_inference_controller import predict_age
 from src.controller.face_match_inference_controller import match_faces
+from src.model.networks.arcface_model import ArcFaceExtractor
+from src.model.networks.face_matcher import FaceMatcher
 from src.model.utils.load import load_image, load_model
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
@@ -24,8 +26,11 @@ class AgeFaceMatchingInference:
         # Age model
         # -------------------------------
         self.age_model = load_model(age_model_name, age_model_weights)
+        self.age_model.to(DEVICE)
         self.img_size = img_size
         self.match_threshold = match_threshold
+        self.extractor = ArcFaceExtractor(device=DEVICE)
+        self.matcher = FaceMatcher(match_threshold)
 
     # --------------------------------------------------
     # Public API
@@ -56,7 +61,7 @@ class AgeFaceMatchingInference:
         # -------------------------------
         # Identity matching
         # -------------------------------
-        match, similarity = match_faces(img1, img2, self.match_threshold).values()
+        match, similarity = match_faces(img1, img2, self.extractor, self.matcher).values()
 
         return {
             "image_1": {
