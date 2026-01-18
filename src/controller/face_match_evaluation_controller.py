@@ -6,7 +6,9 @@ from tqdm import tqdm
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
 from src.model.utils.load import load_image
-from face_match_inference_controller import match_faces
+from src.controller.face_match_inference_controller import match_faces
+from src.model.networks.arcface_model import ArcFaceExtractor
+from src.model.networks.face_matcher import FaceMatcher
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -39,11 +41,12 @@ def evaluate_face_matching(
 
         img1_path = os.path.join(images_dir, row["image_name1"])
         img2_path = os.path.join(images_dir, row["image_name2"])
-
+        extractor = ArcFaceExtractor(device=DEVICE)
+        matcher = FaceMatcher(threshold)
         try:
             img1 = load_image(img1_path)
             img2 = load_image(img2_path)
-            pred, similarity = match_faces(img1, img2, threshold=threshold).values()
+            pred, similarity = match_faces(img1, img2, extractor, matcher).values()
 
         except Exception as e:
             # Skip broken samples safely

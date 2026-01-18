@@ -1,6 +1,12 @@
 import argparse
 from src.controller.age_face_inference_controller import AgeFaceMatchingInference
+from src.model.utils.load import load_image, load_model
+from src.model.networks.arcface_model import ArcFaceExtractor
+from src.model.networks.face_matcher import FaceMatcher
 from typing import Dict
+import torch
+
+DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 
 def age_face_match_inference(
@@ -8,7 +14,8 @@ def age_face_match_inference(
     image_path_2: str,
     age_model_name: str = "mobilenet",
     age_model_weights: str = "src/saved_models/mobilenet_identity_bs16_lr0.0005_ep60.pt",
-    match_threshold: float = 0.45
+    match_threshold: float = 0.45,
+    img_size: int = 224,
 ) -> Dict:
     """
     Perform age-aware face matching between two images.
@@ -32,12 +39,15 @@ def age_face_match_inference(
         Dictionary containing the matching result and similarity score.
     """
     pipeline = AgeFaceMatchingInference(
-        age_model_name=age_model_name,
-        age_model_weights=age_model_weights,
-        match_threshold=match_threshold,
+        age_model=load_model(age_model_name, age_model_weights),
+        extractor=ArcFaceExtractor(device=DEVICE),
+        matcher=FaceMatcher(match_threshold),
+        img_size=img_size,
     )
 
-    result = pipeline.infer(image_path_1, image_path_2)
+    img1 = load_image(image_path_1)
+    img2 = load_image(image_path_2)
+    result = pipeline.infer(img1, img2)
     return result
 
 
@@ -72,6 +82,12 @@ def parse_args():
         type=float, 
         default=0.45, 
         help="Matching threshold (default: 0.45)"
+    )
+    parser.add_argument(
+        "--img_size", 
+        type=int, 
+        default=224, 
+        help="Input image size for the age model (default: 224)"
     )
     return parser.parse_args()
 

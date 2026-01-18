@@ -3,6 +3,7 @@ from src.controller.train_controller import run_training
 from src.scripts.generate_mlflow_dashboard import generate_dashboard
 from src.scripts.compare_splits import compare_split_performance
 from src.view.eda_plots import eda_plots
+from src.scripts.prepare_data import prepare_dataset
 
 
 def main():
@@ -14,6 +15,12 @@ def main():
         config["reports"]["plots_dir"],
         config["dataset"]["dataset_root"],
         config["dataset"]["dataset_name"],
+        config["dataset"]["labels_csv_name"]
+    )
+    prepare_dataset(
+        config["dataset"]["dataset_root"],
+        config["dataset"]["dataset_name"],
+        config["dataset"]["images_dir_name"],
         config["dataset"]["labels_csv_name"]
     )
     run_training(config)
