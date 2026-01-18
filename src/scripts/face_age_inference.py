@@ -7,7 +7,7 @@ def age_face_match_inference(
     image_path_1: str,
     image_path_2: str,
     age_model_name: str = "mobilenet",
-    age_model_weights: str = "saved_models/mobilenet_identity_bs16_lr0.0005_ep60.pt",
+    age_model_weights: str = "src/saved_models/mobilenet_identity_bs16_lr0.0005_ep60.pt",
     match_threshold: float = 0.45
 ) -> Dict:
     """
@@ -44,13 +44,13 @@ def age_face_match_inference(
 def parse_args():
     parser = argparse.ArgumentParser(description="Age-aware Face Matching CLI")
     parser.add_argument(
-        "--image1", 
+        "--image_path1", 
         type=str, 
         required=True, 
         help="Path to the first image"
     )
     parser.add_argument(
-        "--image2", 
+        "--image_path2", 
         type=str, 
         required=True, 
         help="Path to the second image"
@@ -64,7 +64,7 @@ def parse_args():
     parser.add_argument(
         "--weights", 
         type=str,
-        default="saved_models/mobilenet_identity_bs16_lr0.0005_ep60.pt",
+        default="src/saved_models/mobilenet_identity_bs16_lr0.0005_ep60.pt",
         help="Path to age model weights"
     )
     parser.add_argument(
@@ -80,8 +80,8 @@ if __name__ == "__main__":
     args = parse_args()
 
     result = age_face_match_inference(
-        image_path_1=args.image1,
-        image_path_2=args.image2,
+        image_path_1=args.image_path1,
+        image_path_2=args.image_path2,
         age_model_name=args.model,
         age_model_weights=args.weights,
         match_threshold=args.threshold
