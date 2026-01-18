@@ -1,9 +1,6 @@
 import torch
 from src.controller.age_inference_controller import predict_age
 from src.controller.face_match_inference_controller import match_faces
-from src.model.networks.arcface_model import ArcFaceExtractor
-from src.model.networks.face_matcher import FaceMatcher
-from src.model.utils.load import load_image, load_model
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -17,40 +14,37 @@ class AgeFaceMatchingInference:
 
     def __init__(
         self,
-        age_model_name: str,
-        age_model_weights: str,
+        age_model,
+        extractor,
+        matcher,
         img_size: int = 224,
-        match_threshold: float = 0.45,
     ):
         # -------------------------------
         # Age model
         # -------------------------------
-        self.age_model = load_model(age_model_name, age_model_weights)
+        self.age_model = age_model
         self.age_model.to(DEVICE)
         self.img_size = img_size
-        self.match_threshold = match_threshold
-        self.extractor = ArcFaceExtractor(device=DEVICE)
-        self.matcher = FaceMatcher(match_threshold)
+        self.extractor = extractor
+        self.matcher = matcher
 
     # --------------------------------------------------
     # Public API
     # --------------------------------------------------
-    def infer(self, image_path_1: str, image_path_2: str):
+    def infer(self, img1, img2):
         """
-        Returns:
-        {
-            "image_1": {"age": float},
-            "image_2": {"age": float},
-            "match": 0 | 1,
-            "similarity": float
-        }
+        Perform age prediction and face matching on two images.
+        Parameters
+        ----------
+        img1 : Image.Image
+            First input image.
+        img2 : Image.Image
+            Second input image.
+        Returns
+        -------
+        dict
+            Dictionary containing ages, match result, and similarity score.
         """
-
-        # -------------------------------
-        # Load images
-        # -------------------------------
-        img1 = load_image(image_path_1)
-        img2 = load_image(image_path_2)
 
         # -------------------------------
         # Age prediction
@@ -64,14 +58,8 @@ class AgeFaceMatchingInference:
         match, similarity = match_faces(img1, img2, self.extractor, self.matcher).values()
 
         return {
-            "image_1": {
-                "path": image_path_1,
-                "predicted_age": age1,
-            },
-            "image_2": {
-                "path": image_path_2,
-                "predicted_age": age2,
-            },
+            "age_image_1": age1,
+            "age_image_2": age2,
             "match": match,          # 1 = same person, 0 = different
             "similarity": round(similarity  , 3),
         }
