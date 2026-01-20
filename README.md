@@ -147,15 +147,52 @@ pip install -r requirements.txt
 
 ## 🚀 Running the Project
 
-### 1️⃣ Basic Usage --- CLI Inference (Age Prediction)
+### 1️⃣ Basic Usage --- CLI Inference 
 
+(Age Prediction)
+
+##### Windows (PowerShell)
+```bash
+python -m src.scripts.age_inference `
+  --image_path "src/image_samples/001A08.jpg" `
+  --model mobilenet `
+  --checkpoint "src/saved_models/mobilenet_identity_bs16_lr0.0005_ep60.pt" `
+  --img_size 224
+```
+
+##### Linux / macOS
 ```bash
 python -m src.scripts.age_inference \
-  --image_path "src/image_samples/sample_image.jpg" \
+  --image_path "src/image_samples/001A08.jpg" \
   --model mobilenet \
   --checkpoint "src/saved_models/mobilenet_identity_bs16_lr0.0005_ep60.pt" \
   --img_size 224
 ```
+
+(Face Matching & Age Prediction)
+##### Windows (PowerShell)
+```bash
+python -m src.scripts.face_age_inference `
+  --image_path1 "src/image_samples/001A08.jpg" `
+  --image_path2 "src/image_samples/001A16.jpg" `
+  --model mobilenet `
+  --weights "src/saved_models/mobilenet_identity_bs16_lr0.0005_ep60.pt" `
+  --threshold 0.25 `
+  --img_size 224
+```
+
+##### Linux / macOS
+```bash
+```bash
+python -m src.scripts.face_age_inference \
+  --image_path1 "src/image_samples/001A08.jpg" \
+  --image_path2 "src/image_samples/001A16.jpg" \
+  --model mobilenet \
+  --weights "src/saved_models/mobilenet_identity_bs16_lr0.0005_ep60.pt" \
+  --threshold 0.25 \
+  --img_size 224
+```
+  
 
 📂 Generated results will be saved under:
 
@@ -260,15 +297,6 @@ http://localhost:8000/docs
     - `src/saved_models/mobilenet_identity_bs16_lr0.0005_ep60.pt` (Age Prediction)
     - DeepFace ArcFace weights (automatically downloaded for Face Matching)
   - For reproducible results, ensure the same weights file is used across all environments (CLI, API, and Docker).
-
-
-```bash
-python src/scripts/age_inference.py \
-  --image_path src/image_samples/001A08.jpg \
-  --model mobilenet \
-  --checkpoint src/saved_models/mobilenet_identity_bs16_lr0.0005_ep60.pt \
-  --img_size 224
-```
 
 **Output**: Predicted age as integer
 
